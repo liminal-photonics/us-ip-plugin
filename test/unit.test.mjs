@@ -196,6 +196,6 @@ test("round 3: CPC padded like ODP stores it, knockout variants for &, split and
   assert.match(buildPatentQuery({ cpc: "G01J" }), /:G01J\*/);
   assert.deepEqual(variantClauses("M&M'S")[0], { match_phrase: { PM: { query: "M AND MS", boost: 20 } } });
   assert.ok(variantClauses("COCACOLA").some((c) => c.match_phrase?.WM?.query === "COCA COLA"));
-  assert.ok(variantClauses("Spectral Companion").some((c) => c.match?.WM?.query === "SpectralCompanion"));
+  assert.ok(variantClauses("Blue Horizon").some((c) => c.match?.WM?.query === "BlueHorizon"));
   assert.ok(buildSearchQuery("LUXMETER").query.bool.should.length > 3);
 });

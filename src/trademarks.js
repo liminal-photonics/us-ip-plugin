@@ -23,7 +23,7 @@ export function normalizeClasses(classes) {
 
 // Knockout variants the analyzer misses: "&" spelled out (USPTO pseudo mark field PM: M&M -> M AND M),
 // a one-word mark split into two words (LUXMETER -> LUX METER, COCACOLA -> COCA COLA),
-// and a multi-word mark run together (SPECTRAL COMPANION -> SPECTRALCOMPANION).
+// and a multi-word mark run together (BLUE HORIZON -> BLUEHORIZON).
 export function variantClauses(mark) {
   const out = [];
   const m = String(mark).trim();
