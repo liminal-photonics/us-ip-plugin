@@ -10,8 +10,9 @@ export const odpConfigured = () => Boolean(odpKey());
 const NO_KEY = "Patent tools need a free USPTO Open Data Portal API key: set USPTO_API_KEY (see README).";
 
 // Escape Lucene special characters in user words.
-export const esc = (s) => String(s).replace(/([+\-!(){}[\]^"~*?:\\/&|])/g, "\\$1");
-const words = (s) => String(s).trim().split(/\s+/).filter(Boolean).map(esc);
+export const esc = (s) => String(s).replace(/([+\-!(){}[\]^"~*?:\\/&|<>=])/g, "\\$1");
+// Upper-case AND, OR, NOT and TO are Lucene operators; every word is already ANDed, so drop them ("laser AND" -> laser).
+const words = (s) => String(s).trim().split(/\s+/).filter((w) => w && !/^(AND|OR|NOT|TO|&&|\|\|)$/.test(w)).map(esc);
 
 export function buildPatentQuery({ keywords, applicant, cpc, filedFrom, filedTo, grantedOnly } = {}) {
   const parts = [];
@@ -124,7 +125,18 @@ export async function patentSearch({ keywords, applicant, cpc, filedFrom, filedT
 export async function patentDetails({ number, type = "auto" } = {}) {
   const raw = requireText(number, "number").toUpperCase();
   if (!["auto", "application", "patent"].includes(type)) throw new Error('type must be "auto", "application" or "patent".');
-  const digits = raw.replace(/^US/, "").replace(/[AB]\d$/, "").replace(/[^0-9A-Z]/g, "");
+  const compact = raw.replace(/[^0-9A-Z]/g, "").replace(/^US/, "");
+  // Pre-grant publication: 2020/0085571, US20200085571A1, US 2020 0085571 A1 (year + 7 digits, optional kind code)
+  const pub = compact.match(/^((?:19|20)\d{2})(\d{7})(A\d|B\d)?$/);
+  if (pub && type !== "application" && type !== "patent") {
+    const s = await odp("/search", { q: `${MD}.earliestPublicationNumber:${esc(`US${pub[1]}${pub[2]}`)}*`, limit: "1" });
+    const app = s?.patentFileWrapperDataBag?.[0]?.applicationNumberText;
+    const rec = app ? (await odp(`/${encodeURIComponent(app)}`))?.patentFileWrapperDataBag?.[0] : null;
+    if (!rec) return { number: raw, error: "No USPTO application found for that publication number (only the earliest publication of each application is indexed)." };
+    return { ...normalizeDetails(rec), disclaimer: DISCLAIMER };
+  }
+  // drop a trailing kind code: B1/B2 utility, S/S1 design, E/E1 reissue, P2/P3 plant, A1/A2 publication
+  const digits = compact.replace(/^((?:RE|D|PP|H)?\d{5,8})(?:A\d|B\d|S1?|E1?|P\d|H1?)$/, "$1");
   if (!digits) throw new Error("number must be an application or patent number.");
   const appStyle = /\//.test(raw) || /^PCT/.test(digits);
   const patStyle = /^US/.test(raw) || /^\d{1,2},\d{3},\d{3}$/.test(raw) || /^(RE|D|PP)\d+$/.test(digits);

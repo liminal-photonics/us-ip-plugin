@@ -163,3 +163,25 @@ test("TSDR current owner is the latest owner role", () => {
   assert.equal(currentOwner([{ name: "A", role: "ORIGINAL APPLICANT" }]), "A");
   assert.equal(currentOwner([]), null);
 });
+
+test("edge cases: operator words, kind codes, publication numbers, class strings", async () => {
+  assert.equal(buildPatentQuery({ keywords: "laser AND" }), "applicationMetaData.inventionTitle:(laser)");
+  assert.match(buildPatentQuery({ keywords: "a>b" }), /a\\>b/);
+  assert.throws(() => buildPatentQuery({ keywords: "OR NOT" }), /at least one/);
+  assert.deepEqual(normalizeClasses("9, 42"), ["009", "042"]);
+  assert.deepEqual(normalizeClasses("Class 9"), ["009"]);
+  const saved = process.env.USPTO_API_KEY; process.env.USPTO_API_KEY = "test";
+  const urls = [];
+  const restore = mockFetch(async (u) => { urls.push(decodeURIComponent(String(u))); return ok({ count: 1, patentFileWrapperDataBag: [{ applicationNumberText: "16568903", applicationMetaData: { patentNumber: "11000000" } }] }); });
+  try {
+    const r = await patentDetails({ number: "US 2020/0085571 A1" });
+    assert.equal(r.patentNumber, "11000000");
+    assert.match(urls[0], /earliestPublicationNumber:US20200085571\*/);
+    urls.length = 0;
+    await patentDetails({ number: "US D900,000 S" });
+    assert.match(urls[0], /patentNumber:D900000(&|$)/);
+    urls.length = 0;
+    await patentDetails({ number: "RE48000E" });
+    assert.match(urls[0], /patentNumber:RE48000(&|$)/);
+  } finally { restore(); if (saved) process.env.USPTO_API_KEY = saved; else delete process.env.USPTO_API_KEY; }
+});

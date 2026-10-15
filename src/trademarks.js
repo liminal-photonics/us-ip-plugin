@@ -12,7 +12,8 @@ export const tsdrConfigured = () => Boolean(tsdrKey());
 const SOURCE = ["id", "wordmark", "alive", "statusCode", "statusDescription", "filedDate", "registrationDate", "registrationId", "internationalClass", "goodsAndServices", "ownerName", "markType", "drawingCodeDescription", "abandonDate", "cancelDate"];
 
 export function normalizeClasses(classes) {
-  const list = Array.isArray(classes) ? classes : classes != null && classes !== "" ? [classes] : [];
+  // "9, 42" or "009 042" as one string means two classes
+  const list = (Array.isArray(classes) ? classes : classes != null && classes !== "" ? [classes] : []).flatMap((c) => (typeof c === "string" ? c.split(/[,;\s]+/).filter((x) => /\d/.test(x)) : [c]));
   return [...new Set(list.map((c) => {
     const n = parseInt(String(c).replace(/\D/g, ""), 10);
     if (!(n >= 1 && n <= 45)) throw new Error(`Class "${c}" is not a Nice class (1-45).`);
