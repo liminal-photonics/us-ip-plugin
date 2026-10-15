@@ -23,7 +23,10 @@ export function buildPatentQuery({ keywords, applicant, cpc, filedFrom, filedTo,
   if (cpc) {
     const c = String(cpc).toUpperCase().replace(/\s+/g, "");
     if (!/^[A-HY]\d{0,2}[A-Z]?(\d{1,4}(\/\d{1,6})?)?$/.test(c)) throw new Error('cpc must look like "G01J" or "G01J3/28".');
-    parts.push(`${MD}.cpcClassificationBag:${esc(c)}*`);
+    // ODP stores CPC symbols with the main group right-aligned in 4 characters: "G01J   3/28", "G01N  21/31", "G06F2203/04107".
+    const g = c.match(/^([A-HY]\d\d[A-Z])(\d{1,4})(?:\/(\d*))?$/);
+    const stored = g ? `${g[1]}${g[2].padStart(4, " ")}/${g[3] || ""}` : c;
+    parts.push(`${MD}.cpcClassificationBag:${esc(stored).replace(/ /g, "\\ ")}*`);
   }
   for (const d of [filedFrom, filedTo]) if (d && !DATE.test(d)) throw new Error("Dates must be YYYY-MM-DD.");
   if (filedFrom || filedTo) parts.push(`${MD}.filingDate:[${filedFrom || "1790-01-01"} TO ${filedTo || "2999-12-31"}]`);

@@ -185,3 +185,17 @@ test("edge cases: operator words, kind codes, publication numbers, class strings
     assert.match(urls[0], /patentNumber:RE48000(&|$)/);
   } finally { restore(); if (saved) process.env.USPTO_API_KEY = saved; else delete process.env.USPTO_API_KEY; }
 });
+
+test("round 3: CPC padded like ODP stores it, knockout variants for &, split and joined marks", async () => {
+  const { buildPatentQuery } = await import("../src/patents.js");
+  const { variantClauses, buildSearchQuery } = await import("../src/trademarks.js");
+  assert.match(buildPatentQuery({ cpc: "G01J1/42" }), /cpcClassificationBag:G01J\\ \\ \\ 1\\\/42\*/);
+  assert.match(buildPatentQuery({ cpc: "g01j 3/28" }), /G01J\\ \\ \\ 3\\\/28\*/);
+  assert.match(buildPatentQuery({ cpc: "H05B47" }), /H05B\\ \\ 47\\\/\*/);
+  assert.match(buildPatentQuery({ cpc: "G06F2203/04107" }), /G06F2203\\\/04107\*/);
+  assert.match(buildPatentQuery({ cpc: "G01J" }), /:G01J\*/);
+  assert.deepEqual(variantClauses("M&M'S")[0], { match_phrase: { PM: { query: "M AND MS", boost: 20 } } });
+  assert.ok(variantClauses("COCACOLA").some((c) => c.match_phrase?.WM?.query === "COCA COLA"));
+  assert.ok(variantClauses("Spectral Companion").some((c) => c.match?.WM?.query === "SpectralCompanion"));
+  assert.ok(buildSearchQuery("LUXMETER").query.bool.should.length > 3);
+});

@@ -21,6 +21,22 @@ export function normalizeClasses(classes) {
   }))];
 }
 
+// Knockout variants the analyzer misses: "&" spelled out (USPTO pseudo mark field PM: M&M -> M AND M),
+// a one-word mark split into two words (LUXMETER -> LUX METER, COCACOLA -> COCA COLA),
+// and a multi-word mark run together (SPECTRAL COMPANION -> SPECTRALCOMPANION).
+export function variantClauses(mark) {
+  const out = [];
+  const m = String(mark).trim();
+  if (/&/.test(m)) out.push({ match_phrase: { PM: { query: m.replace(/\s*&\s*/g, " AND ").replace(/'/g, ""), boost: 20 } } });
+  const word = m.replace(/[^A-Za-z0-9]/g, "");
+  if (/^[A-Za-z0-9]{4,24}$/.test(m)) {
+    for (let i = 2; i <= m.length - 2; i++) out.push({ match_phrase: { WM: { query: `${m.slice(0, i)} ${m.slice(i)}`, boost: 3 } } });
+  } else if (/\s|-/.test(m) && word.length >= 4 && word.length <= 40) {
+    out.push({ match: { WM: { query: word, boost: 3 } } });
+  }
+  return out;
+}
+
 export function buildSearchQuery(mark, { liveOnly = true, classes = [], limit = 20 } = {}) {
   const filter = [];
   if (liveOnly) filter.push({ term: { alive: true } });
@@ -32,6 +48,7 @@ export function buildSearchQuery(mark, { liveOnly = true, classes = [], limit = 
           { match_phrase: { WM: { query: mark, boost: 5 } } },
           { match: { WM: { query: mark, fuzziness: "AUTO", boost: 2 } } },
           { match_phrase_prefix: { WM: mark } },
+          ...variantClauses(mark),
         ],
         minimum_should_match: 1,
         filter,
