@@ -59,6 +59,7 @@ export function normalizeApplication(r) {
     inventors: (m.inventorBag || []).map((i) => i.inventorNameText).filter(Boolean), // names only, no addresses
     cpc: (m.cpcClassificationBag || []).map((c) => c.replace(/\s+/g, " ").trim()),
     url: r?.applicationNumberText ? `https://patentcenter.uspto.gov/applications/${r.applicationNumberText}` : null,
+    googlePatentsUrl: googlePatentsPageUrl(m.patentNumber, m.earliestPublicationNumber),
   };
 }
 
@@ -84,12 +85,37 @@ export function normalizeDetails(r) {
   };
 }
 
+// Google Patents links (links only, nothing is fetched). Verified formats, Oct 2026:
+//   https://patents.google.com/?q=(spectral)&q=(sensor)&assignee=X&country=US&after=filing:20220101&before=filing:20261231&status=GRANT
+//   https://patents.google.com/patent/US11000000 (resolves to the B1/B2 page) and /patent/US20200085571A1
+export function googlePatentsSearchUrl({ keywords, applicant, filedFrom, filedTo, grantedOnly } = {}) {
+  const q = new URLSearchParams();
+  for (const w of String(keywords || "").trim().split(/\s+/).filter(Boolean)) q.append("q", `(${w})`);
+  if (applicant && String(applicant).trim()) q.set("assignee", String(applicant).trim());
+  q.set("country", "US");
+  if (filedFrom) q.set("after", `filing:${filedFrom.replace(/-/g, "")}`);
+  if (filedTo) q.set("before", `filing:${filedTo.replace(/-/g, "")}`);
+  if (grantedOnly) q.set("status", "GRANT");
+  return `https://patents.google.com/?${q.toString().replace(/%28/g, "(").replace(/%29/g, ")").replace(/%3A/g, ":")}`;
+}
+
+export function googlePatentsPageUrl(patentNumber, publicationNumber) {
+  if (patentNumber) return `https://patents.google.com/patent/US${String(patentNumber).replace(/[^0-9A-Z]/gi, "")}`;
+  if (publicationNumber) return `https://patents.google.com/patent/${String(publicationNumber).replace(/[^0-9A-Z]/gi, "")}`;
+  return null;
+}
+
 const DISCLAIMER = "Search of USPTO application records (titles, applicants, classifications), not full text or claims. Not legal advice, not a patentability opinion and not a freedom-to-operate analysis.";
 
 export async function patentSearch({ keywords, applicant, cpc, filedFrom, filedTo, grantedOnly = false, limit, offset } = {}) {
   const q = buildPatentQuery({ keywords, applicant, cpc, filedFrom, filedTo, grantedOnly });
   const d = await odp("/search", { q, limit: String(clampLimit(limit, 10, 50)), offset: String(Math.max(0, Math.floor(Number(offset)) || 0)), sort: `${MD}.filingDate desc` });
-  return { query: q, total: d?.count ?? 0, results: (d?.patentFileWrapperDataBag || []).map(normalizeApplication), disclaimer: DISCLAIMER };
+  return {
+    query: q, total: d?.count ?? 0, results: (d?.patentFileWrapperDataBag || []).map(normalizeApplication),
+    googlePatentsSearchUrl: googlePatentsSearchUrl({ keywords, applicant, filedFrom, filedTo, grantedOnly }),
+    googlePatentsNote: `Google Patents searches full text${cpc ? " and this link does not apply the CPC filter" : ""}, so its results differ from this title search.`,
+    disclaimer: DISCLAIMER,
+  };
 }
 
 // number: an application number (16568903, 16/568,903, PCTUS2025057318) or a patent number (11,000,000, US11000000B2).

@@ -17,11 +17,11 @@ await run(process.env, async (call, c) => {
   const st = await call("trademark_status", { serialNumber: t.results[0]?.serialNumber || "97123456" });
   console.log("TM_STATUS", st.serialNumber, st.mark, "|", st.statusSummary, "| owners", (st.owners || []).map((o) => o.name).join("; "), st.error || "");
   const p = await call("patent_search", { keywords: "spectral sensor", cpc: "G01J", grantedOnly: true, filedFrom: "2022-01-01", limit: 3 });
-  console.log("PAT_SEARCH total", p.total, p.ERROR || ""); for (const r of p.results || []) console.log("  ", r.patentNumber, r.applicationNumber, "|", r.title.slice(0, 70), "|", r.applicant, "| granted", r.granted);
+  console.log("PAT_SEARCH total", p.total, p.ERROR || ""); console.log("   google:", p.googlePatentsSearchUrl); for (const r of p.results || []) console.log("  ", r.googlePatentsUrl, r.patentNumber, r.applicationNumber, "|", r.title.slice(0, 70), "|", r.applicant, "| granted", r.granted);
   await pause();
   for (const n of ["US11000000B2", "16/568,903"]) {
     const d = await call("patent_details", { number: n });
-    console.log("PAT_DETAILS", n, "->", d.applicationNumber, "patent", d.patentNumber, "|", d.status, "| granted", d.granted, "| assignee", d.assignments?.[0]?.assignees?.join("; "), "| parents", d.parents?.length, d.note || "", d.ERROR || d.error || "");
+    console.log("PAT_DETAILS", n, "->", d.applicationNumber, "patent", d.patentNumber, "|", d.status, "| granted", d.granted, "| assignee", d.assignments?.[0]?.assignees?.join("; "), "| parents", d.parents?.length, "|", d.googlePatentsUrl, d.note || "", d.ERROR || d.error || "");
     await pause();
   }
   console.log("PAT_MISSING", JSON.stringify(await call("patent_details", { number: "99999999" })));

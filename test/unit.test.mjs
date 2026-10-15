@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { normalizeMark, normalizeTsdr, normalizeClasses, buildSearchQuery, trademarkSearch, trademarkStatus } from "../src/trademarks.js";
-import { buildPatentQuery, normalizeApplication, normalizeDetails, patentSearch, patentDetails, esc } from "../src/patents.js";
+import { googlePatentsSearchUrl, googlePatentsPageUrl, buildPatentQuery, normalizeApplication, normalizeDetails, patentSearch, patentDetails, esc } from "../src/patents.js";
 import { request } from "../src/http.js";
 import { status } from "../src/core.js";
 function mockFetch(fn) {
@@ -146,4 +146,13 @@ test("429 is retried once, then succeeds", async () => {
   let n = 0;
   const restore = mockFetch(async () => (++n === 1 ? { ok: false, status: 429, headers: new Map([["retry-after", "0"]]) } : ok({ fine: true })));
   try { const r = await request("USPTO", "https://x"); assert.equal(r.status, 200); assert.equal(n, 2); } finally { restore(); }
+});
+
+test("Google Patents links use the verified formats", () => {
+  assert.equal(googlePatentsSearchUrl({ keywords: "spectral sensor", applicant: "Qualcomm", filedFrom: "2022-01-01", grantedOnly: true }),
+    "https://patents.google.com/?q=(spectral)&q=(sensor)&assignee=Qualcomm&country=US&after=filing:20220101&status=GRANT");
+  assert.equal(googlePatentsPageUrl("11000000"), "https://patents.google.com/patent/US11000000");
+  assert.equal(googlePatentsPageUrl(null, "US20200085571A1"), "https://patents.google.com/patent/US20200085571A1");
+  assert.equal(googlePatentsPageUrl(null, null), null);
+  assert.equal(normalizeApplication(ODP_APP).googlePatentsUrl, "https://patents.google.com/patent/US11000000");
 });

@@ -2,7 +2,7 @@
   "name": "us-ip",
   "displayName": "US Trademark & Patent Research",
   "version": "0.1.0",
-  "description": "USPTO trademark knockout searches and TSDR status, plus patent search and application/patent details from the USPTO Open Data Portal. Research aids only, not legal advice.",
+  "description": "USPTO trademark knockout searches and TSDR status, plus patent search and application/patent details from the USPTO Open Data Portal, with Google Patents links for full-text follow-up. Research aids only, not legal advice.",
   "author": {
     "name": "Liminal Photonics"
   },
@@ -10,9 +10,22 @@
   "repository": "https://github.com/liminal-photonics/us-ip-plugin",
   "license": "MIT",
   "logo": "assets/logo.svg",
-  "keywords": ["uspto", "trademark", "tsdr", "patent", "prior-art", "intellectual-property", "mcp"],
+  "keywords": [
+    "uspto",
+    "trademark",
+    "tsdr",
+    "patent",
+    "prior-art",
+    "intellectual-property",
+    "mcp"
+  ],
   "category": "developer-tools",
-  "tags": ["trademark", "patent", "ip", "mcp"],
+  "tags": [
+    "trademark",
+    "patent",
+    "ip",
+    "mcp"
+  ],
   "skills": "./skills/",
   "mcpServers": "./mcp.json"
 }

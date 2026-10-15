@@ -67,6 +67,7 @@ Set the keys where your agent runs (the plugin's `mcp.json` reads `${env:...}`).
 - **Trademark search** uses the public JSON endpoint behind USPTO's Trademark Search site (tmsearch.uspto.gov). It needs no key but isn't a documented API, so USPTO can change it without notice. If it changes, the tool says so instead of returning wrong data.
 - **Patent search** uses the USPTO Open Data Portal patent file wrapper API. It searches titles and bibliographic data, not full text or claims. For full-text search use USPTO Patent Public Search (ppubs.uspto.gov).
 - `patent_details` accepts `16/568,903`, `11,000,000` or `US11000000B2`. A bare 8-digit number can be both a patent number and an application number. The tool checks both, prefers the patent, and adds a note. Pass `type` to choose.
+- **Google Patents links:** every `patent_search` result includes a ready-made Google Patents search URL with the same words, applicant, dates and granted filter (Google searches full text and the link doesn't carry the CPC filter, so its results differ). Each record also has its Google Patents page (`patents.google.com/patent/US11000000`). These are links only; nothing is scraped.
 - Inventor results are names only; addresses are left out.
 - Requests time out after 20 s (`US_IP_TIMEOUT_MS` changes this). On HTTP 429 the tool waits (up to 5 s) and retries once, then returns a clear rate-limit message.
 - **Not legal advice.** Trademark results are not clearance. Patent results are not a patentability, validity or freedom-to-operate opinion.

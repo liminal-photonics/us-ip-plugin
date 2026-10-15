@@ -13,11 +13,11 @@ const SOURCE = ["id", "wordmark", "alive", "statusCode", "statusDescription", "f
 
 export function normalizeClasses(classes) {
   const list = Array.isArray(classes) ? classes : classes != null && classes !== "" ? [classes] : [];
-  return list.map((c) => {
+  return [...new Set(list.map((c) => {
     const n = parseInt(String(c).replace(/\D/g, ""), 10);
     if (!(n >= 1 && n <= 45)) throw new Error(`Class "${c}" is not a Nice class (1-45).`);
     return String(n).padStart(3, "0");
-  });
+  }))];
 }
 
 export function buildSearchQuery(mark, { liveOnly = true, classes = [], limit = 20 } = {}) {

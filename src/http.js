@@ -31,7 +31,17 @@ export async function json(name, url, init) {
     try { detail = (await res.text()).replace(/\s+/g, " ").slice(0, 200); } catch {}
     throw new Error(`${name} HTTP ${res.status}${detail ? `: ${detail}` : ""}`);
   }
-  return res.json();
+  try {
+    return await res.json();
+  } catch {
+    throw new Error(`${name} returned a response that is not JSON (the service may be down or changed).`);
+  }
+}
+
+export function requireInt(v, field, min, max) {
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < min || n > max) throw new Error(`${field} must be a whole number from ${min} to ${max}.`);
+  return n;
 }
 
 export function requireText(v, field) {
