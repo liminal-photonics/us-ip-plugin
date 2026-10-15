@@ -1,0 +1,15 @@
+{
+  "name": "us-ip-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for USPTO trademark and patent research.",
+  "type": "module",
+  "bin": { "us-ip-mcp": "src/index.js" },
+  "main": "src/index.js",
+  "files": ["src/"],
+  "scripts": { "start": "node src/index.js", "test": "node --test test/", "live": "node scripts/live-smoke.mjs" },
+  "engines": { "node": ">=18" },
+  "author": "Liminal Photonics",
+  "license": "MIT",
+  "repository": "https://github.com/liminal-photonics/us-ip-plugin",
+  "dependencies": { "@modelcontextprotocol/sdk": "^1.17.0" }
+}
