@@ -156,3 +156,10 @@ test("Google Patents links use the verified formats", () => {
   assert.equal(googlePatentsPageUrl(null, null), null);
   assert.equal(normalizeApplication(ODP_APP).googlePatentsUrl, "https://patents.google.com/patent/US11000000");
 });
+
+import { currentOwner } from "../src/trademarks.js";
+test("TSDR current owner is the latest owner role", () => {
+  assert.equal(currentOwner([{ name: "A", role: "ORIGINAL APPLICANT" }, { name: "A", role: "ORIGINAL REGISTRANT" }, { name: "B", role: "SUBSEQUENT OWNER AFTER REGISTRATION" }]), "B");
+  assert.equal(currentOwner([{ name: "A", role: "ORIGINAL APPLICANT" }]), "A");
+  assert.equal(currentOwner([]), null);
+});

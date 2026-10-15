@@ -11,7 +11,7 @@ A Grok Bot / Cursor plugin for USPTO trademark and patent research. It bundles a
 | Tool | What it does | Key |
 | --- | --- | --- |
 | `trademark_search` | Knockout search of USPTO trademarks by word mark (exact, fuzzy, prefix); live marks only by default; optional Nice classes | none |
-| `trademark_status` | TSDR status for a serial number: status, owners, classes, recent history | `USPTO_TSDR_API_KEY` |
+| `trademark_status` | TSDR status for a serial number: status, current owner of record (latest owner role), full owner history, classes, recent history | `USPTO_TSDR_API_KEY` |
 | `patent_search` | US applications and grants by title keywords, first applicant, CPC prefix and filing dates; granted-only option | `USPTO_API_KEY` |
 | `patent_details` | One application or patent: status, dates, applicant, inventor names, CPC, assignments, continuity, patent term adjustment, recent events | `USPTO_API_KEY` |
 | `ip_status` | Shows which keys are set | none |

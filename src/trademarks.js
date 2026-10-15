@@ -82,6 +82,18 @@ function ownerOf(t) {
   return all.map((o) => ({ name: o.name, role: o.partyTypeDescription, entity: o.entityType?.description || null })).filter((o) => { const k = `${o.name}|${o.role}`; if (seen.has(k)) return false; seen.add(k); return true; });
 }
 
+// TSDR lists every owner role over time (applicant, owner at publication, registrant, later assignees).
+// The latest role is the current owner of record.
+const ROLE_RANK = [/ORIGINAL APPLICANT/, /OWNER AT PUBLICATION/, /ORIGINAL REGISTRANT|REGISTRANT/, /NEW OWNER|SUBSEQUENT OWNER|ASSIGNEE/];
+export function currentOwner(owners) {
+  let best = null, rank = -1;
+  for (const o of owners || []) {
+    const r = ROLE_RANK.findIndex((re) => re.test(String(o.role || "").toUpperCase()));
+    if (r >= rank) { rank = r; best = o; }
+  }
+  return best ? best.name : null;
+}
+
 export function normalizeTsdr(d) {
   const t = d?.trademarks?.[0];
   if (!t?.status) return null;
@@ -100,6 +112,7 @@ export function normalizeTsdr(d) {
     examiner: s.staff?.examiner?.name || null,
     lawOffice: s.lawOffAssigned || null,
     owners: ownerOf(t),
+    currentOwner: currentOwner(ownerOf(t)),
     classes: (t.gsList || []).flatMap((g) => (g.internationalClasses || []).map((c) => `${c.code} ${c.description}`)),
     recentHistory: (t.prosecutionHistory || []).slice(0, 8).map((h) => ({ date: (h.entryDate || "").slice(0, 10), event: h.entryDesc })),
     tsdrUrl: `https://tsdr.uspto.gov/#caseNumber=${s.serialNumber}&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch`,
