@@ -19,7 +19,7 @@ const TOOLS = [
   },
   {
     name: "patent_search",
-    description: "Search USPTO patent applications and grants (Open Data Portal) by title keywords (all words must match), first applicant, CPC class prefix and filing-date range; optionally granted patents only. Newest filings first. Searches titles and metadata, not full text or claims. Needs USPTO_API_KEY.",
+    description: "Search USPTO patent applications and grants (Open Data Portal) by title keywords (all words must match), first applicant, CPC class prefix and filing-date range; optionally granted patents only. Newest filings first. Searches titles and metadata, not full text or claims. Also returns a Google Patents link as a convenience search to continue in full text; it is not verification of the USPTO results. Needs USPTO_API_KEY.",
     inputSchema: {
       type: "object",
       properties: {

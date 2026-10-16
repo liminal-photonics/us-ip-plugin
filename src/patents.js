@@ -92,10 +92,11 @@ export function normalizeDetails(r) {
 // Google Patents links (links only, nothing is fetched). Verified formats, Oct 2026:
 //   https://patents.google.com/?q=(spectral)&q=(sensor)&assignee=X&country=US&after=filing:20220101&before=filing:20261231&status=GRANT
 //   https://patents.google.com/patent/US11000000 (resolves to the B1/B2 page) and /patent/US20200085571A1
-export function googlePatentsSearchUrl({ keywords, applicant, filedFrom, filedTo, grantedOnly } = {}) {
+export function googlePatentsSearchUrl({ keywords, applicant, cpc, filedFrom, filedTo, grantedOnly } = {}) {
   const q = new URLSearchParams();
   for (const w of String(keywords || "").trim().split(/\s+/).filter(Boolean)) q.append("q", `(${w})`);
   if (applicant && String(applicant).trim()) q.set("assignee", String(applicant).trim());
+  if (cpc && String(cpc).trim()) q.set("cpc", String(cpc).trim().toUpperCase().replace(/\s+/g, ""));
   q.set("country", "US");
   if (filedFrom) q.set("after", `filing:${filedFrom.replace(/-/g, "")}`);
   if (filedTo) q.set("before", `filing:${filedTo.replace(/-/g, "")}`);
@@ -116,8 +117,8 @@ export async function patentSearch({ keywords, applicant, cpc, filedFrom, filedT
   const d = await odp("/search", { q, limit: String(clampLimit(limit, 10, 50)), offset: String(Math.max(0, Math.floor(Number(offset)) || 0)), sort: `${MD}.filingDate desc` });
   return {
     query: q, total: d?.count ?? 0, results: (d?.patentFileWrapperDataBag || []).map(normalizeApplication),
-    googlePatentsSearchUrl: googlePatentsSearchUrl({ keywords, applicant, filedFrom, filedTo, grantedOnly }),
-    googlePatentsNote: `Google Patents searches full text${cpc ? " and this link does not apply the CPC filter" : ""}, so its results differ from this title search.`,
+    googlePatentsSearchUrl: googlePatentsSearchUrl({ keywords, applicant, cpc, filedFrom, filedTo, grantedOnly }),
+    googlePatentsNote: "Convenience link to continue on Google Patents. Google searches full text, so its results differ from this USPTO title search; it does not verify these results. The USPTO records above are the source of record.",
     disclaimer: DISCLAIMER,
   };
 }
