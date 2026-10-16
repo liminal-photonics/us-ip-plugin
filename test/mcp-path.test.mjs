@@ -32,3 +32,14 @@ test("MCP patent_search: the Google Patents link is labeled a convenience search
     assert.match(r.googlePatentsSearchUrl, /cpc=G01J/);
   } finally { await c.close(); }
 });
+
+test("MCP: unknown argument names are rejected with the valid names and a likely match", async () => {
+  const r = await call("patent_search", { query: "lux meter", cpc: "G01J1/42" });
+  assert.equal(r.isError, true);
+  assert.match(r.text, /Unknown argument "query"/);
+  assert.match(r.text, /keywords/);
+});
+async function call(name, args) {
+  const c = await client();
+  try { const r = await c.callTool({ name, arguments: args }); return { isError: !!r.isError, text: r.content[0].text }; } finally { await c.close(); }
+}

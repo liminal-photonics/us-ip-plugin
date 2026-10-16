@@ -43,12 +43,25 @@ const TOOLS = [
 const HANDLERS = { trademark_search: trademarkSearch, trademark_status: trademarkStatus, patent_search: patentSearch, patent_details: patentDetails, ip_status: status };
 
 const server = new Server({ name: "us-ip", version: "0.1.0" }, { capabilities: { tools: {} } });
+// Reject misspelled or unknown argument names instead of silently ignoring them (e.g. "query" for "keywords").
+const ALIASES = { query: "keywords", q: "keywords", keyword: "keywords", text: "keywords", term: "keywords", mark: "markText", serial: "serialNumber", patent: "patentNumber", applicant: "applicantName", owner: "applicantName" };
+function checkArgs(name, a) {
+  if (!a || typeof a !== "object" || Array.isArray(a)) return;
+  const props = Object.keys(TOOLS.find((t) => t.name === name)?.inputSchema?.properties || {});
+  const bad = Object.keys(a).filter((k) => !props.includes(k));
+  if (!bad.length) return;
+  const lc = (x) => x.toLowerCase().replace(/[_-]/g, "");
+  const hint = (k) => { const g = props.find((p) => lc(p) === lc(k)) || (props.includes(ALIASES[lc(k)]) ? ALIASES[lc(k)] : null); return g ? ` (did you mean "${g}"?)` : ""; };
+  throw new Error(`${bad.slice(0, 5).map((k) => `Unknown argument "${String(k).slice(0, 40)}"${hint(k)}`).join("; ")}. ${name} accepts: ${props.join(", ")}.`);
+}
+
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 server.setRequestHandler(CallToolRequestSchema, async (req) => {
   const { name, arguments: a = {} } = req.params;
   try {
     const h = HANDLERS[name];
     if (!h) throw new Error(`Unknown tool ${name}`);
+    checkArgs(name, a);
     return { content: [{ type: "text", text: JSON.stringify(await h(a), null, 2) }] };
   } catch (e) {
     return { isError: true, content: [{ type: "text", text: e.message }] };
