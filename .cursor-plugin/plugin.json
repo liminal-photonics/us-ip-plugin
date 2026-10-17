@@ -1,7 +1,7 @@
 {
   "name": "us-ip",
   "displayName": "US Trademark & Patent Research",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "USPTO trademark knockout searches and TSDR status, plus patent search and application/patent details from the USPTO Open Data Portal, with Google Patents links for full-text follow-up. Research aids only, not legal advice.",
   "author": {
     "name": "Liminal Photonics"
