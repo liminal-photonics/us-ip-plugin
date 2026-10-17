@@ -3,7 +3,7 @@
     "us-ip": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "github:liminal-photonics/us-ip-plugin"],
+      "args": ["-y", "github:liminal-photonics/us-ip-plugin#v0.2.0"],
       "env": {
         "USPTO_API_KEY": "${env:USPTO_API_KEY}",
         "USPTO_TSDR_API_KEY": "${env:USPTO_TSDR_API_KEY}"

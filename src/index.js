@@ -5,6 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { trademarkSearch, trademarkStatus } from "./trademarks.js";
 import { patentSearch, patentDetails } from "./patents.js";
 import { status } from "./core.js";
+import { pluginVersion, stamp, versionInfo } from "./version.js";
 
 const TOOLS = [
   {
@@ -37,12 +38,12 @@ const TOOLS = [
     description: "Status and details for one US application or patent: title, status, dates, applicant, inventors (names only), CPC, assignments, continuity, patent term adjustment, recent events. Accepts 16/568,903, 11,000,000 or US11000000B2. Needs USPTO_API_KEY.",
     inputSchema: { type: "object", properties: { number: { type: "string", minLength: 1 }, type: { type: "string", enum: ["auto", "application", "patent"], default: "auto" } }, required: ["number"] },
   },
-  { name: "ip_status", description: "Show which USPTO sources are available and which keys are configured.", inputSchema: { type: "object", properties: {} } },
+  { name: "ip_status", description: "Show which USPTO sources are available, which keys are configured, and the plugin version and git commit that is running.", inputSchema: { type: "object", properties: {} } },
 ];
 
-const HANDLERS = { trademark_search: trademarkSearch, trademark_status: trademarkStatus, patent_search: patentSearch, patent_details: patentDetails, ip_status: status };
+const HANDLERS = { trademark_search: trademarkSearch, trademark_status: trademarkStatus, patent_search: patentSearch, patent_details: patentDetails, ip_status: async (a) => ({ ...(await status(a)), ...versionInfo() }) };
 
-const server = new Server({ name: "us-ip", version: "0.1.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "us-ip", version: pluginVersion().version || "0.0.0" }, { capabilities: { tools: {} } });
 // Reject misspelled or unknown argument names instead of silently ignoring them (e.g. "query" for "keywords").
 const ALIASES = { query: "keywords", q: "keywords", keyword: "keywords", text: "keywords", term: "keywords", mark: "markText", serial: "serialNumber", patent: "patentNumber", applicant: "applicantName", owner: "applicantName" };
 function checkArgs(name, a) {
@@ -62,7 +63,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const h = HANDLERS[name];
     if (!h) throw new Error(`Unknown tool ${name}`);
     checkArgs(name, a);
-    return { content: [{ type: "text", text: JSON.stringify(await h(a), null, 2) }] };
+    return { content: [{ type: "text", text: JSON.stringify(stamp(await h(a)), null, 2) }] };
   } catch (e) {
     return { isError: true, content: [{ type: "text", text: e.message }] };
   }

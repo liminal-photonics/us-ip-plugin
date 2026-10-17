@@ -14,7 +14,7 @@ A Grok Bot / Cursor plugin for USPTO trademark and patent research. It bundles a
 | `trademark_status` | TSDR status for a serial number: status, current owner of record (latest owner role), full owner history, classes, recent history | `USPTO_TSDR_API_KEY` |
 | `patent_search` | US applications and grants by title keywords, first applicant, CPC prefix and filing dates; granted-only option | `USPTO_API_KEY` |
 | `patent_details` | One application or patent: status, dates, applicant, inventor names, CPC, assignments, continuity, patent term adjustment, recent events | `USPTO_API_KEY` |
-| `ip_status` | Shows which keys are set | none |
+| `ip_status` | Shows which keys are set, plus the plugin version and git commit | none |
 
 **Skills**
 
@@ -32,12 +32,18 @@ Install **US Trademark & Patent Research** from the Grok Bot or Cursor plugin ma
   "mcpServers": {
     "us-ip": {
       "command": "npx",
-      "args": ["-y", "github:liminal-photonics/us-ip-plugin"],
+      "args": ["-y", "github:liminal-photonics/us-ip-plugin#v0.2.0"],
       "env": { "USPTO_API_KEY": "...", "USPTO_TSDR_API_KEY": "..." }
     }
   }
 }
 ```
+
+## Reliability fields (v0.2.0)
+
+- Every tool result carries `retrievedAt` (UTC, ISO 8601) and `plugin: { name, version, gitSha }`, so a saved result can be dated and traced to the exact build. Array results are wrapped as `{ result: [...] }`.
+- `ip_status` reports `pluginName`, `version`, `gitSha` and `gitShaSource` (the npm lockfile that installed the plugin, `PLUGIN_GIT_SHA`, or the git checkout).
+- Pin installs to a release tag (`#v0.2.0`) or a commit SHA, not the default branch, so an update can't change answers without notice. The tag is created on the merge commit; until it exists, pin the merge commit SHA.
 
 ## API keys (free, bring your own)
 
