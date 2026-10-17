@@ -1,6 +1,6 @@
 {
   "name": "us-ip-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for USPTO trademark and patent research.",
   "type": "module",
   "bin": { "us-ip-mcp": "src/index.js" },
